@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <h1 class="hero-text">Prayer Times</h1>
+    <header class="header-wrapper">
+      <h3 class="header-brand">Prayer</h3>
+    </header>
     <prayer-times></prayer-times>
   </div>
 </template>
@@ -18,15 +20,14 @@ export default {
 
 <style>
 
+* {
+}
+
 html, body{
   height: 100%;
   margin: 0;
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   /* font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; */
-}
-
-.hero-text {
-  /* color: #fff; */
 }
 
 #app {
@@ -38,7 +39,19 @@ html, body{
   /* background: red; */
   /* padding: 1rem; */
   min-height: 100%;
-  padding: 1rem;
+  display: grid;
+  grid-template-rows: max-content 1fr;
+}
 
+.header-wrapper {
+  /* color: #fff; */
+  background: #7C4DFF;
+  padding: 1.5rem 2rem;
+}
+
+.header-brand {
+  margin: 0;
+  color: #fff;
+  font-weight: 600;
 }
 </style>

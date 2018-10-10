@@ -3,25 +3,35 @@
     <div v-if="loading" class="loading">
         Loading...
     </div>
-    <div v-else>
+    <div v-else class="prayer-times__container">
         <!-- Loop through each date object containing the times for that day -->
-        <div v-for="(prayerTime, property, i) in data.times" :key="i">
-            <!-- Get todays prayer times -->
-            <div v-if="getTimesByDate(property)">
-                <!-- loop through the object containing todays prayer times -->
-                <div v-for="(value, propertyName, index) in prayerTime" :key="index" >
-                    <!-- Remove unwanted properties like jamat -->
-                    <div v-if="filterdata(propertyName)" class="row">
-                            <div class="title">{{propertyName}}</div>
-                            <span class="test">{{value}}</span>
-                            <hr>
+
+        <section class="prayer-countdown__wrapper">
+            <h1>03:55:53</h1>
+            <p>Time until next prayer</p>
+        </section>
+        <section class="prayer-times__wrapper">
+            <div class="prayer-info__wrapper">
+                <h3>London</h3>
+                <span class="prayer-info__date">29 Muharram 1440</span>
+            </div>
+            <div>
+                <div v-for="(prayerTime, property, i) in data.times" :key="i" >
+                    <!-- Get todays prayer times -->
+                    <div v-if="getTimesByDate(property)">
+                        <!-- loop through the object containing todays prayer times -->
+                        <div v-for="(value, propertyName, index) in prayerTime" :key="index">
+                            <!-- Remove unwanted properties like jamat -->
+                            <div v-if="filterdata(propertyName)" class="prayer-table__row">
+                                    <div class="title">{{propertyName}}</div>
+                                    <span class="test">{{value}}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div>
+        </section>
 
-        </div>
     </div>
   </div>
 </template>
@@ -53,8 +63,7 @@ export default {
                 && propertyName !== 'asr_jamat'
                 && propertyName !== 'magrib_jamat' 
                 && propertyName !== 'isha_jamat'
-                && propertyName !== 'asr_2'
-                && propertyName !== 'sunrise'){
+                && propertyName !== 'asr_2'){
                 return true;
             }
         },
@@ -107,26 +116,61 @@ export default {
         justify-self: center;
     }
 
-    /* .uppercase {
-        text-transform: capitalize;
-        margin: 0.5rem 0;
-    } */
+    .prayer-times__container{
+        display: grid;
+        grid-template-rows: max-content max-content;
+        margin: 2rem 0;
+        grid-gap: 30px;
+    }
 
-    .title {
-        font-size: 1.5rem;
+    .prayer-countdown__wrapper {
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        /* padding: 2rem 0; */
+    }
+    
+    .prayer-countdown__wrapper *{
+        margin: 0.7rem;
+    }
+
+    .prayer-countdown__wrapper h1{
+        width: max-content;
         font-weight: 300;
-        margin: 0.6rem 0;
+        font-size: 2rem;
+    }
+
+    .prayer-times__wrapper{
+        border: 1px solid #eeeeee;
+        margin: 0 1.5rem 0 1.5rem;
+        padding: 1.5rem 1rem;
+        display: grid;
+        grid-template-rows: max-content 1fr;
+        grid-gap: 35px;
+        max-height: max-content;
+    }
+
+    .prayer-info__wrapper {
+        display: grid;
+        grid-gap: 20px;
+        justify-items: center;
+    }
+
+    .prayer-info__wrapper * {
+        margin: 0;
+    }
+
+    .prayer-info__date {
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .prayer-table__row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        margin: 1rem 0;
         text-transform: capitalize;
-        color: rgb(36, 36, 36);
-    }
-
-    .fab {
-        width: 56px;
-        height: 56px;
-        border-radius: 30%;
-    }
-
-    .fab-icon {
-        color: #fff;
+        justify-items: center;
+        text-align: start;
     }
 </style>
