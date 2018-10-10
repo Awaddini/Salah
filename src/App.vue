@@ -41,17 +41,21 @@ html, body{
   min-height: 100%;
   display: grid;
   grid-template-rows: max-content 1fr;
+  background: #7C4DFF;
+  background-image: linear-gradient(#7C4DFF, #A537FD);
+  color: #fff;
 }
 
 .header-wrapper {
   /* color: #fff; */
-  background: #7C4DFF;
+  /* background: #612EF0; */
   padding: 1.5rem 2rem;
 }
 
 .header-brand {
   margin: 0;
   color: #fff;
-  font-weight: 600;
+  font-weight: 300;
+  font-size: 1.3rem;
 }
 </style>

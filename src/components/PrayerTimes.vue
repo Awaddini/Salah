@@ -15,21 +15,18 @@
                 <h3>London</h3>
                 <span class="prayer-info__date">29 Muharram 1440</span>
             </div>
-            <div>
-                <div v-for="(prayerTime, property, i) in data.times" :key="i" >
-                    <!-- Get todays prayer times -->
-                    <div v-if="getTimesByDate(property)">
-                        <!-- loop through the object containing todays prayer times -->
-                        <div v-for="(value, propertyName, index) in prayerTime" :key="index">
-                            <!-- Remove unwanted properties like jamat -->
-                            <div v-if="filterdata(propertyName)" class="prayer-table__row">
-                                    <div class="title">{{propertyName}}</div>
-                                    <span class="test">{{value}}</span>
-                            </div>
-                        </div>
+
+            <div v-for="(prayerTime, i) in filteredPrayerTimes" :key="i">
+                <!-- Get todays prayer times --> 
+                <div v-for="(value, propertyName, index) in filteredPrayerTime" :key="index">
+
+                    <div  class="prayer-table__row">
+                            <div class="title">{{propertyName}}</div>
+                            <span class="test">{{value}}</span>
                     </div>
                 </div>
             </div>
+
         </section>
 
     </div>
@@ -38,6 +35,8 @@
 
 <script>
 import axios from 'axios';
+
+
 
 export default {
     data () {
@@ -54,6 +53,25 @@ export default {
                 year: '2018',
                 month: today.getMonth() + 1
             }
+        },
+        filteredPrayerTimes () {
+            Object.keys(this.data.times).filter(key => !this.getTimesByDate(key))
+            .forEach(key => delete this.data.times[key]);
+            return this.data.times;
+        },
+        filteredPrayerTime () {
+            const key = Object.keys(this.data.times);
+            const filtered = this.data.times[key[0]];
+            Object.keys(filtered).filter(propertyName => 
+                propertyName == 'date'
+                || propertyName == 'fajr_jamat' 
+                || propertyName == 'dhuhr_jamat' 
+                || propertyName == 'asr_jamat'
+                || propertyName == 'magrib_jamat' 
+                || propertyName == 'isha_jamat'
+                || propertyName == 'asr_2')
+            .forEach(key => delete filtered[key])
+            return filtered;
         }
     },
     methods: {
@@ -84,11 +102,11 @@ export default {
             today = yyyy + '-' + mm + '-' + dd;
             // setting test date below
             // today = '2018' + '-' + '09' + '-' + '30';
-
             if (today === property){
-                return true;
+                return property;
+            } else {
+                return false;
             }
-
         }
     },
     mounted () {
@@ -109,6 +127,7 @@ export default {
 <style scoped>
     .prayer-times {
         display: grid;
+
     }
 
     .loading {
@@ -148,6 +167,9 @@ export default {
         grid-template-rows: max-content 1fr;
         grid-gap: 35px;
         max-height: max-content;
+        background: #fff;
+        color: #333;
+        border-radius: 2px;
     }
 
     .prayer-info__wrapper {
