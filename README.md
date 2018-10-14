@@ -1,5 +1,9 @@
-# prayer-times
+# Prayer times application.
 
+## Link
+```
+https://salah-times.netlify.com/
+```
 ## Project setup
 ```
 npm install
