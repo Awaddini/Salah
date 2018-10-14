@@ -15,49 +15,76 @@
       <section class="prayerTimes__wrapper">
           <div class="prayerTimes__info">
               <h3>London</h3>
-              <!-- Static hijri year below -->
-              <span class="prayerTimes__info__date">29 Muharram 1440</span>
+
+              <div class="prayerTimes__info--date">
+                <span v-if="!hijri">{{formattedDate}}</span>
+                <span v-else >19th Muharram 1440</span>
+
+                <!-- <Date /> -->
+
+                <button class="btn--arrow btn--sync">
+                  <i class="material-icons" @click="toggleHijri">sync</i>
+                </button>
+
+              </div>
+
           </div>
           <div class="prayerTimes__table">
             <div class="prayerTimes__table__row">
               <div class="">Fajr</div>
-              <div class="">{{data.times[currentDate].fajr}}</div>
+              <div class="">{{data.times[date].fajr}}</div>
             </div>
             <div class="prayerTimes__table__row">
               <div class="">Sunrise</div>
-              <div class="">{{data.times[currentDate].sunrise}}</div>
+              <div class="">{{data.times[date].sunrise}}</div>
             </div>
             <div class="prayerTimes__table__row">
               <div class="">Dhur</div>
-              <div class="">{{data.times[currentDate].dhuhr}}</div>
+              <div class="">{{data.times[date].dhuhr}}</div>
             </div>
             <div class="prayerTimes__table__row">
               <div class="">Asr</div>
-              <div class="">{{data.times[currentDate].asr}}</div>
+              <div class="">{{data.times[date].asr}}</div>
             </div>
             <div class="prayerTimes__table__row">
               <div class="">Maghrib</div>
-              <div class="">{{data.times[currentDate].magrib}}</div>
+              <div class="">{{data.times[date].magrib}}</div>
             </div>
             <div class="prayerTimes__table__row">
               <div class="">Isha</div>
-              <div class="">{{data.times[currentDate].isha}}</div>
+              <div class="">{{data.times[date].isha}}</div>
             </div>
           </div>
+          <div class="btn-group prayerTimes__btns">
+            <button class="btn--arrow btn--left" @click="changeDate('left')" v-if="date !== startOfMonth">
+              <i class="material-icons">keyboard_arrow_left</i>
+            </button>
+            <button class="btn--arrow btn--right" @click="changeDate('right')" v-if="date !==  endOfMonth">
+              <i class="material-icons">keyboard_arrow_right</i>
+            </button>
+          </div>
       </section>
+      <span style="justify-self: center; background: #fff; border-radius: 2px; color: #333;
+      padding: 2rem;" v-if="msg">{{msg}}</span>
     </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+import moment from "moment";
+import animate from "animate.css";
 
 export default {
   data() {
     return {
       loading: true,
       data: null,
-      currentDate: ""
+      date: "",
+      msg: null,
+      startOfMonth: null,
+      endOfMonth: null,
+      hijri: false
     };
   },
   computed: {
@@ -68,24 +95,33 @@ export default {
         year: "2018",
         month: today.getMonth() + 1
       };
+    },
+    formattedDate() {
+      const formattedDate = moment(this.date).format("dddd, DD MMM");
+      return formattedDate;
     }
   },
   methods: {
-    getTimesByDate() {
-      var today = new Date();
-      var dd = today.getDate();
-      var mm = today.getMonth() + 1;
-      var yyyy = today.getFullYear();
-
-      if (dd < 10) {
-        dd = "0" + dd;
+    toggleHijri() {
+      this.hijri = !this.hijri;
+    },
+    getDate() {
+      return moment().format("YYYY-MM-DD");
+    },
+    changeDate(direction) {
+      if (direction === "right") {
+        this.date = moment(this.date)
+          .add(1, "day")
+          .format("YYYY-MM-DD");
+        this.alert(this.date);
       }
 
-      if (mm < 10) {
-        mm = "0" + mm;
+      if (direction === "left") {
+        this.date = moment(this.date)
+          .subtract(1, "day")
+          .format("YYYY-MM-DD");
+        this.alert(this.date);
       }
-
-      return `${yyyy}-${mm}-${dd}`;
     },
     async getCalendar() {
       const { key, year, month } = this.search;
@@ -99,11 +135,22 @@ export default {
       this.data = response.data;
       console.log(this.data);
       this.loading = false;
+    },
+    setupMonthRange() {
+      // this.day = moment(this.date).format("DD");
+      this.startOfMonth = moment()
+        .startOf("month")
+        .format("YYYY-MM-DD");
+
+      this.endOfMonth = moment()
+        .endOf("month")
+        .format("YYYY-MM-DD");
     }
   },
   mounted() {
-    this.currentDate = this.getTimesByDate();
+    this.date = this.getDate();
     this.getCalendar();
+    this.setupMonthRange();
   }
 };
 </script>
@@ -129,6 +176,7 @@ export default {
   display: grid;
   justify-items: center;
   align-items: center;
+  font-weight: 100;
   /* padding: 2rem 0; */
 }
 
@@ -136,16 +184,15 @@ export default {
   margin: 0.7rem;
 }
 
-.prayer__countdown h1 {
+.prayerTimes__countdown h1 {
   width: max-content;
-  font-weight: 300;
+  font-weight: 400 !important;
   font-size: 2rem;
 }
 
 .prayerTimes__wrapper {
   border: 1px solid #eeeeee;
   margin: 0 1.5rem 0 1.5rem;
-  /* padding: 1.5rem 1rem; */
   display: grid;
   grid-template-rows: max-content 1fr;
   /* grid-gap: 10px; */
@@ -163,13 +210,20 @@ export default {
   padding: 1.5rem 1rem;
 }
 
-.prayerTimes__info * {
-  margin: 0;
+.prayerTimes__info--date {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
 }
 
-.prayerTimes__info__date {
-  font-size: 0.85rem;
-  /* font-weight: 600; */
+.prayerTimes__info--date span {
+  font-size: 1rem;
+}
+
+.btn--sync {
+  padding: 0 1rem;
+}
+.btn--sync i {
+  font-size: 1.3rem;
 }
 
 .prayerTimes__table {
@@ -188,5 +242,24 @@ export default {
 
 .prayerTimes__table__row * {
   /* text-align: center; */
+}
+
+@media only screen and (min-width: 768px) {
+  .prayerTimes__wrapper {
+    min-width: 600px;
+    max-width: 800px;
+    justify-self: center;
+  }
+
+  .prayerTimes__container {
+    margin: 2rem 0;
+    grid-gap: 60px;
+  }
+}
+
+@media only screen and (min-width: 1200px) {
+  .prayerTimes__wrapper {
+    min-width: 800px;
+  }
 }
 </style>
