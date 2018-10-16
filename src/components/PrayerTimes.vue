@@ -18,7 +18,7 @@
 
               <div class="prayerTimes__info--date">
                 <span v-if="!hijri">{{formattedDate}}</span>
-                <span v-else >19th Muharram 1440</span>
+                <span v-else >{{hijriDate}}</span>
 
                 <!-- <Date /> -->
 
@@ -64,8 +64,6 @@
             </button>
           </div>
       </section>
-      <span style="justify-self: center; background: #fff; border-radius: 2px; color: #333;
-      padding: 2rem;" v-if="msg">{{msg}}</span>
     </div>
   </div>
 </template>
@@ -74,6 +72,8 @@
 import axios from "axios";
 import moment from "moment";
 import animate from "animate.css";
+import { toHijri } from "hijri-converter";
+import hijriFormatter from "../helpers/Hijri.js";
 
 export default {
   data() {
@@ -81,11 +81,13 @@ export default {
       loading: true,
       data: null,
       date: "",
-      msg: null,
       startOfMonth: null,
       endOfMonth: null,
       hijri: false
     };
+  },
+  watch: {
+    date() {}
   },
   computed: {
     search() {
@@ -99,6 +101,21 @@ export default {
     formattedDate() {
       const formattedDate = moment(this.date).format("dddd, DD MMM");
       return formattedDate;
+    },
+    hijriDate() {
+      const newHijri = toHijri(2018, 10, 15);
+      const newDate = moment(this.date).format("DD");
+      const newMonth = moment(this.date).format("MM");
+      const newYear = moment(this.date).format("YY");
+      const theDate = {
+        newDate,
+        newMonth,
+        newYear
+      };
+      console.log(newDate + newMonth + newYear);
+      const formattedNewHijri = hijriFormatter(theDate);
+      console.log(` The real date ${formattedNewHijri}`);
+      return newHijri;
     }
   },
   methods: {
@@ -113,14 +130,12 @@ export default {
         this.date = moment(this.date)
           .add(1, "day")
           .format("YYYY-MM-DD");
-        this.alert(this.date);
       }
 
       if (direction === "left") {
         this.date = moment(this.date)
           .subtract(1, "day")
           .format("YYYY-MM-DD");
-        this.alert(this.date);
       }
     },
     async getCalendar() {
