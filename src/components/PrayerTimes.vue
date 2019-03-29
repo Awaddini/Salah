@@ -92,7 +92,7 @@ export default {
       var today = new Date();
       return {
         key: "4f447b24-2597-4a34-a167-0d4013862e61",
-        year: "2018",
+        year: "2019",
         month: today.getMonth() + 1
       };
     },
