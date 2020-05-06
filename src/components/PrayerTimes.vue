@@ -7,9 +7,12 @@
     <div v-else class="prayerTimes__container">
 
       <!-- Static countdown -->
-      <section class="prayerTimes__countdown">
-          <h1>03:55:53</h1>
-          <p>Time until next prayer</p>
+      <section class="prayerTimes__countdown" >
+          <!-- <h1>03:55:53</h1> -->
+          <h1>{{nextPrayer}}</h1>
+          <p style="font-weight: 400" v-if="timeUntil">-{{timeUntil.hours}}:{{timeUntil.minutes}}:{{timeUntil.seconds}}</p>
+          <p v-else>00:00:00</p>
+          <!-- <p>Time until next prayer</p> -->
       </section>
 
       <section class="prayerTimes__wrapper">
@@ -73,6 +76,8 @@
 <script>
 import axios from "axios";
 import moment from "moment";
+import momentDuration from "moment-duration-format";
+import countdown from "countdown";
 import animate from "animate.css";
 
 export default {
@@ -84,15 +89,18 @@ export default {
       msg: null,
       startOfMonth: null,
       endOfMonth: null,
-      hijri: false
+      hijri: false,
+      timeUntil: null,
+      nextPrayer: null
     };
   },
   computed: {
     search() {
       var today = new Date();
+      var year = moment().format('YYYY');
       return {
         key: "4f447b24-2597-4a34-a167-0d4013862e61",
-        year: "2019",
+        year: year,
         month: today.getMonth() + 1
       };
     },
@@ -113,14 +121,12 @@ export default {
         this.date = moment(this.date)
           .add(1, "day")
           .format("YYYY-MM-DD");
-        this.alert(this.date);
       }
 
       if (direction === "left") {
         this.date = moment(this.date)
           .subtract(1, "day")
           .format("YYYY-MM-DD");
-        this.alert(this.date);
       }
     },
     async getCalendar() {
@@ -134,7 +140,11 @@ export default {
 
       this.data = response.data;
       console.log(this.data);
+      console.log(`todays date: ${this.date}`);
+      console.log(`search param ${this.search.key} ${this.search.year} ${this.search.month}`)
       this.loading = false;
+      this.calculateNextPrayerTime();
+      this.countdownToPrayerTime();
     },
     setupMonthRange() {
       // this.day = moment(this.date).format("DD");
@@ -145,6 +155,87 @@ export default {
       this.endOfMonth = moment()
         .endOf("month")
         .format("YYYY-MM-DD");
+    },
+    calculateNextPrayerTime() {
+      let times = this.data.times[this.date];
+      let currentTime = moment(new Date("may 6, 2020 21:00:15")).format("hh:mm");
+
+      times.fajr = `${times.fajr} AM`;
+      times.dhuhr = `${times.dhuhr} PM`;
+      times.asr = `${times.asr} PM`;
+      times.magrib = `${times.magrib} PM`;
+      times.isha = `${times.isha} PM`;
+      
+      times.fajr = moment(times.fajr, ["h:mm A"]).format("HH:mm");
+      times.dhuhr = moment(times.dhuhr, ["h:mm A"]).format("HH:mm");
+      times.asr = moment(times.asr, ["h:mm A"]).format("HH:mm");
+      times.magrib = moment(times.magrib, ["h:mm A"]).format("HH:mm");
+      times.isha = moment(times.isha, ["h:mm A"]).format("HH:mm");
+
+      this.isBetweenXandY(times.asr, times.magrib);
+      
+    },
+    isBetweenXandY (prev, next) {
+      let midnight = moment().clone().startOf('day');
+
+      let previousPrayerTime = prev.split(':').join('');
+      let nextPrayerTime = next.split(':').join('');
+
+      let currentTime = moment(new Date('May 06 2020 09:37:00')).format('YYYYMMDD mm');
+
+      let initialDate = moment(new Date()).format('YYYYMMDD');
+      let previousDateTime = moment(initialDate + " " + previousPrayerTime).format();
+      let nextDateTime = moment(initialDate + " " + nextPrayerTime).format();
+      console.log(previousDateTime);
+      console.log(nextDateTime);
+      
+      // minutes since midnight for current time
+      let y = new moment();
+      console.log(y);
+      let diff = moment.duration(midnight.diff(y)).as('minutes');
+      diff = parseInt(Math.abs(diff)); 
+
+      // minutes since midnight for param 1
+      previousDateTime = moment.duration(midnight.diff(previousDateTime)).as('minutes');
+      previousDateTime = parseInt(Math.abs(previousDateTime)); 
+
+      // minutes since midnight for param 2
+      nextDateTime = moment.duration(midnight.diff(nextDateTime)).as('minutes');
+      nextDateTime = parseInt(Math.abs(nextDateTime)); 
+
+      console.log(diff);
+      console.log(previousDateTime);
+      console.log(nextDateTime);
+      if ( (diff > previousDateTime) && (diff < nextDateTime) ) {
+        this.nextPrayer = next;
+      }
+    },
+    countdownToPrayerTime() {
+      let initialDate = moment(new Date()).format('YYYYMMDD');
+      let count = this.nextPrayer.split(':').join('');
+      count = moment(initialDate + " " + count).format();
+      count = new Date(count).getTime();
+
+      let x = setInterval(() => {
+        let now = new Date().getTime();
+        let d = count - now;
+        let hours = Math.floor( (d%(1000*60*60*24)) / (1000*60*60) );
+        let minutes = Math.floor( (d%(1000*60*60)) / (1000*60) );
+        let seconds = Math.floor( (d%(1000*60)) / 1000 );
+
+        if (d <= 0 ) {
+          clearInterval(x);
+        }
+
+        this.formatTimeUntil(hours, minutes, seconds);
+      }, 1000);
+    },
+    formatTimeUntil (hours, minutes, seconds) {
+      this.timeUntil = {
+        hours,
+        minutes,
+        seconds
+      }
     }
   },
   mounted() {
@@ -168,7 +259,6 @@ export default {
 .prayerTimes__container {
   display: grid;
   grid-template-rows: max-content max-content;
-  margin: 1rem 0;
   grid-gap: 30px;
 }
 
@@ -180,12 +270,14 @@ export default {
   /* padding: 2rem 0; */
 }
 
-.prayerTimes__countdown * {
-  margin: 0.7rem;
+.prayerTimes__countdown{
+  /* margin: 0.7rem; */
+  margin: 0 1rem;
 }
 
 .prayerTimes__countdown h1 {
-  width: max-content;
+  /* width: max-content; */
+  text-align: center;
   font-weight: 400 !important;
   font-size: 2rem;
 }
