@@ -25,9 +25,9 @@
 
                 <!-- <Date /> -->
 
-                <button class="btn--arrow btn--sync">
+                <!-- <button class="btn--arrow btn--sync">
                   <i class="material-icons" @click="toggleHijri">sync</i>
-                </button>
+                </button> -->
 
               </div>
 
@@ -76,9 +76,8 @@
 <script>
 import axios from "axios";
 import moment from "moment";
-import momentDuration from "moment-duration-format";
-import countdown from "countdown";
 import animate from "animate.css";
+import momentDuration from "moment-duration-format";
 
 export default {
   data() {
@@ -91,7 +90,8 @@ export default {
       endOfMonth: null,
       hijri: false,
       timeUntil: null,
-      nextPrayer: null
+      nextPrayer: null,
+      tomorrowsDate: null
     };
   },
   computed: {
@@ -144,10 +144,8 @@ export default {
       console.log(`search param ${this.search.key} ${this.search.year} ${this.search.month}`)
       this.loading = false;
       this.calculateNextPrayerTime();
-      this.countdownToPrayerTime();
     },
     setupMonthRange() {
-      // this.day = moment(this.date).format("DD");
       this.startOfMonth = moment()
         .startOf("month")
         .format("YYYY-MM-DD");
@@ -158,13 +156,16 @@ export default {
     },
     calculateNextPrayerTime() {
       let times = this.data.times[this.date];
-      let currentTime = moment(new Date("may 6, 2020 21:00:15")).format("hh:mm");
+
+      // setting up prayer times for 24 hour conversion
 
       times.fajr = `${times.fajr} AM`;
       times.dhuhr = `${times.dhuhr} PM`;
       times.asr = `${times.asr} PM`;
       times.magrib = `${times.magrib} PM`;
       times.isha = `${times.isha} PM`;
+    
+      // converting prayer times to 24 hour
       
       times.fajr = moment(times.fajr, ["h:mm A"]).format("HH:mm");
       times.dhuhr = moment(times.dhuhr, ["h:mm A"]).format("HH:mm");
@@ -172,27 +173,34 @@ export default {
       times.magrib = moment(times.magrib, ["h:mm A"]).format("HH:mm");
       times.isha = moment(times.isha, ["h:mm A"]).format("HH:mm");
 
+      this.isBetweenXandY(times.fajr, times.dhuhr);
+      this.isBetweenXandY(times.dhuhr, times.asr);
       this.isBetweenXandY(times.asr, times.magrib);
-      
+      this.isBetweenXandY(times.magrib, times.isha);
+      (() => {
+        if (this.nextPrayer === null) {
+          this.tomorrowsDate = moment(this.date)
+          .add(1, "day")
+          .format("YYYY-MM-DD");
+          this.nextPrayer = this.data.times[this.tomorrowsDate].fajr;
+          console.log(this.nextPrayer);
+        }
+      })()
+
+      this.countdownToPrayerTime();
     },
     isBetweenXandY (prev, next) {
       let midnight = moment().clone().startOf('day');
-
       let previousPrayerTime = prev.split(':').join('');
       let nextPrayerTime = next.split(':').join('');
-
-      let currentTime = moment(new Date('May 06 2020 09:37:00')).format('YYYYMMDD mm');
 
       let initialDate = moment(new Date()).format('YYYYMMDD');
       let previousDateTime = moment(initialDate + " " + previousPrayerTime).format();
       let nextDateTime = moment(initialDate + " " + nextPrayerTime).format();
-      console.log(previousDateTime);
-      console.log(nextDateTime);
       
       // minutes since midnight for current time
-      let y = new moment();
-      console.log(y);
-      let diff = moment.duration(midnight.diff(y)).as('minutes');
+      let currentTime = new moment();
+      let diff = moment.duration(midnight.diff(currentTime)).as('minutes');
       diff = parseInt(Math.abs(diff)); 
 
       // minutes since midnight for param 1
@@ -203,16 +211,22 @@ export default {
       nextDateTime = moment.duration(midnight.diff(nextDateTime)).as('minutes');
       nextDateTime = parseInt(Math.abs(nextDateTime)); 
 
-      console.log(diff);
-      console.log(previousDateTime);
-      console.log(nextDateTime);
+      // console.log(diff);
+      // console.log(previousDateTime);
+      // console.log(nextDateTime);
       if ( (diff > previousDateTime) && (diff < nextDateTime) ) {
         this.nextPrayer = next;
+      } else if (moment(nextDateTime).isAfter(previousDateTime)) {
+
       }
     },
     countdownToPrayerTime() {
       let initialDate = moment(new Date()).format('YYYYMMDD');
+      if (this.tomorrowsDate) {
+        initialDate = moment(this.tomorrowsDate).format('YYYYMMDD');
+      }
       let count = this.nextPrayer.split(':').join('');
+        // count = moment(new Date('7 may, 2020 03:40'));
       count = moment(initialDate + " " + count).format();
       count = new Date(count).getTime();
 
@@ -284,7 +298,7 @@ export default {
 
 .prayerTimes__wrapper {
   border: 1px solid #eeeeee;
-  margin: 0 1.5rem 0 1.5rem;
+  margin: 0 1rem;
   display: grid;
   grid-template-rows: max-content 1fr;
   /* grid-gap: 10px; */
@@ -296,10 +310,9 @@ export default {
 
 .prayerTimes__info {
   display: grid;
-  grid-gap: 15px;
   justify-items: center;
   background: rgba(247, 247, 247, 0.933);
-  padding: 1.5rem 1rem;
+  padding: 1.6rem 1rem;
 }
 
 .prayerTimes__info--date {
@@ -320,8 +333,8 @@ export default {
 
 .prayerTimes__table {
   display: grid;
-  grid-gap: 30px;
-  padding: 2rem 1rem;
+  grid-gap: 15px;
+  padding: 1.3rem 1rem 1rem 1rem;
 }
 
 .prayerTimes__table__row {
@@ -332,15 +345,17 @@ export default {
   justify-items: center;
 }
 
-.prayerTimes__table__row * {
-  /* text-align: center; */
-}
-
 @media only screen and (min-width: 768px) {
   .prayerTimes__wrapper {
     min-width: 600px;
     max-width: 800px;
     justify-self: center;
+  }
+
+  .prayerTimes__table {
+    display: grid;
+    grid-gap: 20px;
+    padding: 2rem 1rem;
   }
 
   .prayerTimes__container {

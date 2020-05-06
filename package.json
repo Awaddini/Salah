@@ -9,7 +9,6 @@
   "dependencies": {
     "animate.css": "^3.7.0",
     "axios": "^0.18.1",
-    "countdown": "^2.6.0",
     "moment": "^2.22.2",
     "moment-duration-format": "^2.3.2",
     "register-service-worker": "^1.0.0",

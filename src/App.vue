@@ -49,14 +49,14 @@ body {
 }
 
 .header {
-  padding: 1.5rem 2rem;
+  padding: 1.35rem 1rem;
 }
 
 .header__brand {
   margin: 0;
   color: #fff;
   font-weight: 400;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
 }
 
 .footer {
